@@ -45,6 +45,9 @@ local Library = {
 
     Signals = {};
     ScreenGui = ScreenGui;
+
+    SearchElements = {};
+    ActiveTabColor = Color3.fromRGB(30, 30, 30);
 };
 
 local RainbowStep = 0
@@ -1542,6 +1545,7 @@ do
 
         Button.Outer, Button.Inner, Button.Label = CreateBaseButton(Button)
         Button.Outer.Parent = Container
+        table.insert(Library.SearchElements, { Frame = Button.Outer, Text = Button.Text:lower(), Groupbox = Groupbox });
 
         InitEvents(Button)
 
@@ -1945,6 +1949,7 @@ do
         end
 
         Toggle:Display();
+        table.insert(Library.SearchElements, { Frame = ToggleOuter, Text = Info.Text:lower(), Groupbox = Groupbox });
         Groupbox:AddBlank(Info.BlankSize or 5 + 2);
         Groupbox:Resize();
 
@@ -2955,7 +2960,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(550, 600) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(660, 700) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3004,6 +3009,18 @@ function Library:CreateWindow(...)
     });
     Library:AddToRegistry(TopBar:FindFirstChild('Frame'), { BackgroundColor3 = 'MainColor' });
 
+    -- Title label on left of top bar
+    local TitleLabel = Library:CreateLabel({
+        Position = UDim2.new(0, 14, 0, 0);
+        Size = UDim2.new(0, 120, 1, 0);
+        Text = Config.Title;
+        TextSize = 15;
+        Font = Enum.Font.GothamBold;
+        TextXAlignment = Enum.TextXAlignment.Left;
+        ZIndex = 3;
+        Parent = TopBar;
+    });
+
     local SearchBox = Library:Create('TextBox', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderSizePixel = 0;
@@ -3015,14 +3032,27 @@ function Library:CreateWindow(...)
         TextSize = 14;
         TextXAlignment = Enum.TextXAlignment.Left;
         ClearTextOnFocus = false;
-        Position = UDim2.new(0, 12, 0.5, -13);
-        Size = UDim2.new(1, -52, 0, 26);
+        Position = UDim2.new(0, 140, 0.5, -13);
+        Size = UDim2.new(1, -190, 0, 26);
         ZIndex = 3;
         Parent = TopBar;
     });
     Library:Create('UICorner', { CornerRadius = UDim.new(0, 6); Parent = SearchBox; });
     Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 8); Parent = SearchBox; });
     Library:AddToRegistry(SearchBox, { BackgroundColor3 = 'BackgroundColor'; TextColor3 = 'FontColor' });
+
+    SearchBox:GetPropertyChangedSignal('Text'):Connect(function()
+        local q = SearchBox.Text:lower()
+        local toResize = {}
+        for _, e in ipairs(Library.SearchElements) do
+            local show = q == '' or e.Text:find(q, 1, true) ~= nil
+            e.Frame.Visible = show
+            toResize[e.Groupbox] = true
+        end
+        for gb in pairs(toResize) do
+            gb:Resize()
+        end
+    end)
 
     local DragLabel = Library:CreateLabel({
         AnchorPoint = Vector2.new(1, 0.5);
@@ -3154,7 +3184,8 @@ function Library:CreateWindow(...)
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
-            ScrollBarThickness = 0;
+            ScrollBarThickness = 3;
+            ScrollBarImageColor3 = Library.OutlineColor;
             ZIndex = 2;
             Parent = TabFrame;
         });
@@ -3167,7 +3198,8 @@ function Library:CreateWindow(...)
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
-            ScrollBarThickness = 0;
+            ScrollBarThickness = 3;
+            ScrollBarImageColor3 = Library.OutlineColor;
             ZIndex = 2;
             Parent = TabFrame;
         });
@@ -3202,6 +3234,8 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 0;
             TabButtonLabel.TextColor3 = Library.FontColor;
             Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'FontColor';
+            TabButton.BackgroundColor3 = Library.ActiveTabColor;
+            Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'ActiveTabColor';
             TabFrame.Visible = true;
         end;
 
@@ -3209,6 +3243,8 @@ function Library:CreateWindow(...)
             Blocker.BackgroundTransparency = 1;
             TabButtonLabel.TextColor3 = Library.SubtextColor;
             Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'SubtextColor';
+            TabButton.BackgroundColor3 = Library.MainColor;
+            Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
             TabFrame.Visible = false;
         end;
 
