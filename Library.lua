@@ -2994,6 +2994,45 @@ function Library:CreateWindow(...)
 
     Library:MakeDraggable(Outer, 52);
 
+    -- ─── Resize handles (right edge + left edge, middle 50% height) ─────
+    do
+        local MIN_W, MAX_W = 620, 1400
+
+        local function MakeResizeHandle(anchorX, offsetX, sign)
+            local handle = Library:Create('Frame', {
+                BackgroundTransparency = 1;
+                Position = UDim2.new(anchorX, offsetX, 0.25, 0);
+                Size     = UDim2.new(0, 8, 0.5, 0);
+                ZIndex   = 200;
+                Parent   = Outer;
+            });
+
+            local active  = false
+            local startX  = 0
+            local startW  = 0
+
+            handle.InputBegan:Connect(function(Input)
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+                active = true
+                startX = Input.Position.X
+                startW = Outer.AbsoluteSize.X
+            end)
+
+            Library:GiveSignal(InputService.InputChanged:Connect(function(Input)
+                if not active or Input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+                local delta = (Input.Position.X - startX) * sign
+                Outer.Size = UDim2.fromOffset(math.clamp(startW + delta, MIN_W, MAX_W), Outer.AbsoluteSize.Y)
+            end))
+
+            Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 then active = false end
+            end))
+        end
+
+        MakeResizeHandle(1, -8,  1)  -- right edge: drag right = wider
+        MakeResizeHandle(0,  0, -1)  -- left edge:  drag left  = wider
+    end
+
     -- ─── Sidebar (full height) ──────────────────────────────────────────
     local Sidebar = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
