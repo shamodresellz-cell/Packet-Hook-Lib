@@ -48,6 +48,7 @@ local Library = {
 
     SearchElements = {};
     ActiveTabColor = Color3.fromRGB(30, 30, 30);
+    ButtonColor = Color3.fromRGB(24, 24, 24);
 };
 
 local RainbowStep = 0
@@ -1432,50 +1433,54 @@ do
 
         local function CreateBaseButton(Button)
             local Outer = Library:Create('Frame', {
-                BackgroundColor3 = Color3.new(0, 0, 0);
-                BorderColor3 = Color3.new(0, 0, 0);
-                Size = UDim2.new(1, -4, 0, 20);
+                BackgroundTransparency = 1;
+                Size = UDim2.new(1, -4, 0, 28);
                 ZIndex = 5;
             });
 
             local Inner = Library:Create('Frame', {
-                BackgroundColor3 = Library.MainColor;
-                BorderColor3 = Library.OutlineColor;
-                BorderMode = Enum.BorderMode.Inset;
+                BackgroundColor3 = Library.ButtonColor;
+                BorderSizePixel = 0;
                 Size = UDim2.new(1, 0, 1, 0);
                 ZIndex = 6;
                 Parent = Outer;
             });
+            Library:Create('UICorner', { CornerRadius = UDim.new(0, 5); Parent = Inner; });
+            Library:AddToRegistry(Inner, { BackgroundColor3 = 'ButtonColor' });
+
+            local Stroke = Library:Create('UIStroke', {
+                Color = Library.OutlineColor;
+                Thickness = 1;
+                Parent = Inner;
+            });
+            Library:AddToRegistry(Stroke, { Color = 'OutlineColor' });
 
             local Label = Library:CreateLabel({
-                Size = UDim2.new(1, 0, 1, 0);
+                Position = UDim2.new(0, 10, 0, 0);
+                Size = UDim2.new(1, -28, 1, 0);
                 TextSize = 14;
                 Text = Button.Text;
-                ZIndex = 6;
+                TextXAlignment = Enum.TextXAlignment.Left;
+                ZIndex = 7;
                 Parent = Inner;
             });
 
-            Library:Create('UIGradient', {
-                Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
-                });
-                Rotation = 90;
+            local Arrow = Library:CreateLabel({
+                AnchorPoint = Vector2.new(1, 0.5);
+                Position = UDim2.new(1, -10, 0.5, 0);
+                Size = UDim2.new(0, 14, 0, 20);
+                TextSize = 16;
+                Text = '›';
+                ZIndex = 7;
                 Parent = Inner;
             });
+            Library:RemoveFromRegistry(Arrow);
+            Library:AddToRegistry(Arrow, { TextColor3 = 'SubtextColor' });
+            Arrow.TextColor3 = Library.SubtextColor;
 
-            Library:AddToRegistry(Outer, {
-                BorderColor3 = 'Black';
-            });
-
-            Library:AddToRegistry(Inner, {
-                BackgroundColor3 = 'MainColor';
-                BorderColor3 = 'OutlineColor';
-            });
-
-            Library:OnHighlight(Outer, Outer,
-                { BorderColor3 = 'AccentColor' },
-                { BorderColor3 = 'Black' }
+            Library:OnHighlight(Outer, Stroke,
+                { Color = 'AccentColor' },
+                { Color = 'OutlineColor' }
             );
 
             return Outer, Inner, Label
