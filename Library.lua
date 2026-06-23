@@ -3768,6 +3768,13 @@ function Library:CreateWindow(...)
 
     if Config.AutoShow then task.spawn(Library.Toggle) end
 
+    Library.SetTransparency = function(t)
+        Outer.BackgroundTransparency            = t
+        Sidebar.BackgroundTransparency          = t
+        TopBar.BackgroundTransparency           = t
+        MainSectionInner.BackgroundTransparency = t
+    end
+
     Window.Holder = Outer;
 
     return Window;
