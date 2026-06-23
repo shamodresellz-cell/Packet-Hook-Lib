@@ -1963,6 +1963,7 @@ do
         setmetatable(Toggle, BaseAddons);
 
         Toggles[Idx] = Toggle;
+        Options[Idx] = Toggle;
 
         Library:UpdateDependencyBoxes();
 
@@ -3776,7 +3777,12 @@ function Library:CreateWindow(...)
             if inst and inst.Parent then
                 local key = Data.Properties.BackgroundColor3
                 if key == 'BackgroundColor' or key == 'MainColor' or key == 'ButtonColor' then
-                    pcall(function() inst.BackgroundTransparency = t end)
+                    pcall(function()
+                        inst.BackgroundTransparency = t
+                        -- keep the toggle-restore cache in sync so maximize restores correct value
+                        local cache = TransparencyCache[inst]
+                        if cache then cache.BackgroundTransparency = t end
+                    end)
                 end
             end
         end
