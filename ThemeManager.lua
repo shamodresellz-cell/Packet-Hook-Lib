@@ -144,7 +144,7 @@ function ThemeManager:BuildThemeSection(tab)
 	})
 	colorGroup:AddSlider('UiTransparency', {
 		Text     = 'UI Transparency',
-		Default  = 0,
+		Default  = 5,
 		Min      = 0,
 		Max      = 50,
 		Rounding = 1,
@@ -152,6 +152,7 @@ function ThemeManager:BuildThemeSection(tab)
 			lib.SetTransparency(val / 50)
 		end,
 	})
+	lib.SetTransparency(5 / 50)
 
 	-- ── Theme save/load (right column) ───────────────────────────────
 	local saveGroup = tab:AddRightGroupbox('Themes')
@@ -201,7 +202,7 @@ function ThemeManager:BuildThemeSection(tab)
 		Opts.ThemeManager_ThemeList:SetValue(nil)
 	end)
 
-	local autoloadLbl = saveGroup:AddLabel('Theme autoload: none')
+	local autoloadLbl
 
 	saveGroup:AddButton('Set as autoload', function()
 		local name = Opts.ThemeManager_ThemeList.Value
@@ -217,6 +218,8 @@ function ThemeManager:BuildThemeSection(tab)
 		autoloadLbl:SetText('Theme autoload: none')
 		lib:Notify('Theme autoload cleared', 3)
 	end)
+
+	autoloadLbl = saveGroup:AddLabel('Theme autoload: none')
 
 	if isfile(self.Folder .. '/themes/autoload.txt') then
 		autoloadLbl:SetText('Theme autoload: ' .. readfile(self.Folder .. '/themes/autoload.txt'))
