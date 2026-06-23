@@ -2960,7 +2960,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(660, 700) end
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(820, 720) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2984,39 +2984,151 @@ function Library:CreateWindow(...)
     Library:Create('UICorner', { CornerRadius = UDim.new(0, 8); Parent = Outer; });
     Library:Create('UIStroke', { Color = Library.OutlineColor; Thickness = 1; Parent = Outer; });
     Library:AddToRegistry(Outer, { BackgroundColor3 = 'BackgroundColor' });
+    Outer.ClipsDescendants = true;
 
-    Library:MakeDraggable(Outer, 50);
+    Library:MakeDraggable(Outer, 52);
 
-    -- Top bar: search + drag handle
-    local TopBar = Library:Create('Frame', {
+    -- ─── Sidebar (full height) ──────────────────────────────────────────
+    local Sidebar = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderSizePixel = 0;
-        Size = UDim2.new(1, 0, 0, 50);
+        Position = UDim2.new(0, 0, 0, 0);
+        Size = UDim2.new(0, 185, 1, 0);
         ZIndex = 2;
         Parent = Outer;
     });
-    Library:Create('UICorner', { CornerRadius = UDim.new(0, 8); Parent = TopBar; });
-    Library:AddToRegistry(TopBar, { BackgroundColor3 = 'MainColor' });
+    Library:AddToRegistry(Sidebar, { BackgroundColor3 = 'MainColor' });
 
-    -- Patch bottom corners of TopBar so it blends into content
+    -- Sidebar right separator
     Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
+        BackgroundColor3 = Library.OutlineColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 0, 0.5, 0);
-        Size = UDim2.new(1, 0, 0.5, 0);
-        ZIndex = 2;
-        Parent = TopBar;
+        Position = UDim2.new(1, -1, 0, 0);
+        Size = UDim2.new(0, 1, 1, 0);
+        ZIndex = 5;
+        Parent = Sidebar;
     });
-    Library:AddToRegistry(TopBar:FindFirstChild('Frame'), { BackgroundColor3 = 'MainColor' });
 
-    -- Title label on left of top bar
+    -- Three macOS-style colored dots
+    local dot1 = Library:Create('Frame', {
+        BackgroundColor3 = Color3.fromRGB(255, 95, 87);
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 14, 0, 18);
+        Size = UDim2.new(0, 11, 0, 11);
+        ZIndex = 4;
+        Parent = Sidebar;
+    });
+    Library:Create('UICorner', { CornerRadius = UDim.new(1, 0); Parent = dot1; });
+
+    local dot2 = Library:Create('Frame', {
+        BackgroundColor3 = Color3.fromRGB(255, 189, 46);
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 30, 0, 18);
+        Size = UDim2.new(0, 11, 0, 11);
+        ZIndex = 4;
+        Parent = Sidebar;
+    });
+    Library:Create('UICorner', { CornerRadius = UDim.new(1, 0); Parent = dot2; });
+
+    local dot3 = Library:Create('Frame', {
+        BackgroundColor3 = Color3.fromRGB(39, 201, 63);
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 46, 0, 18);
+        Size = UDim2.new(0, 11, 0, 11);
+        ZIndex = 4;
+        Parent = Sidebar;
+    });
+    Library:Create('UICorner', { CornerRadius = UDim.new(1, 0); Parent = dot3; });
+
+    -- Hub icon circle
+    local HubIcon = Library:Create('Frame', {
+        BackgroundColor3 = Library.AccentColor;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 14, 0, 42);
+        Size = UDim2.new(0, 34, 0, 34);
+        ZIndex = 4;
+        Parent = Sidebar;
+    });
+    Library:Create('UICorner', { CornerRadius = UDim.new(1, 0); Parent = HubIcon; });
+    Library:AddToRegistry(HubIcon, { BackgroundColor3 = 'AccentColor' });
+    Library:CreateLabel({
+        Size = UDim2.new(1, 0, 1, 0);
+        TextSize = 14;
+        Font = Enum.Font.GothamBold;
+        Text = string.sub(Config.Title or 'P', 1, 1);
+        ZIndex = 5;
+        Parent = HubIcon;
+    });
+
+    -- Title
     local TitleLabel = Library:CreateLabel({
-        Position = UDim2.new(0, 14, 0, 0);
-        Size = UDim2.new(0, 120, 1, 0);
+        Position = UDim2.new(0, 56, 0, 44);
+        Size = UDim2.new(1, -60, 0, 16);
         Text = Config.Title;
-        TextSize = 15;
+        TextSize = 14;
         Font = Enum.Font.GothamBold;
         TextXAlignment = Enum.TextXAlignment.Left;
+        ZIndex = 4;
+        Parent = Sidebar;
+    });
+
+    -- Subtitle
+    local SubtitleLabel = Library:CreateLabel({
+        Position = UDim2.new(0, 56, 0, 62);
+        Size = UDim2.new(1, -60, 0, 13);
+        Text = Config.Subtitle or 'Anime Battle Arena';
+        TextSize = 11;
+        TextXAlignment = Enum.TextXAlignment.Left;
+        ZIndex = 4;
+        Parent = Sidebar;
+    });
+    Library:RemoveFromRegistry(SubtitleLabel);
+    Library:AddToRegistry(SubtitleLabel, { TextColor3 = 'SubtextColor' });
+    SubtitleLabel.TextColor3 = Library.SubtextColor;
+
+    -- Header separator
+    Library:Create('Frame', {
+        BackgroundColor3 = Library.OutlineColor;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 0, 0, 88);
+        Size = UDim2.new(1, -1, 0, 1);
+        ZIndex = 4;
+        Parent = Sidebar;
+    });
+
+    -- Tab area (below header)
+    local TabArea = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        Position = UDim2.new(0, 0, 0, 96);
+        Size = UDim2.new(1, 0, 1, -96);
+        ZIndex = 3;
+        Parent = Sidebar;
+    });
+
+    local TabListLayout = Library:Create('UIListLayout', {
+        Padding = UDim.new(0, 2);
+        FillDirection = Enum.FillDirection.Vertical;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = TabArea;
+    });
+
+    -- Content top bar (right of sidebar, search area)
+    local TopBar = Library:Create('Frame', {
+        BackgroundColor3 = Library.MainColor;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 185, 0, 0);
+        Size = UDim2.new(1, -185, 0, 44);
+        ZIndex = 2;
+        Parent = Outer;
+    });
+    Library:AddToRegistry(TopBar, { BackgroundColor3 = 'MainColor' });
+
+    -- TopBar bottom separator
+    Library:Create('Frame', {
+        BackgroundColor3 = Library.OutlineColor;
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 0, 1, -1);
+        Size = UDim2.new(1, 0, 0, 1);
         ZIndex = 3;
         Parent = TopBar;
     });
@@ -3032,8 +3144,8 @@ function Library:CreateWindow(...)
         TextSize = 14;
         TextXAlignment = Enum.TextXAlignment.Left;
         ClearTextOnFocus = false;
-        Position = UDim2.new(0, 140, 0.5, -13);
-        Size = UDim2.new(1, -190, 0, 26);
+        Position = UDim2.new(0, 10, 0.5, -13);
+        Size = UDim2.new(1, -54, 0, 26);
         ZIndex = 3;
         Parent = TopBar;
     });
@@ -3064,48 +3176,12 @@ function Library:CreateWindow(...)
         Parent = TopBar;
     });
 
-    -- Sidebar for vertical tab buttons
-    local Sidebar = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor;
-        BorderSizePixel = 0;
-        Position = UDim2.new(0, 0, 0, 50);
-        Size = UDim2.new(0, 140, 1, -50);
-        ZIndex = 2;
-        Parent = Outer;
-    });
-    Library:AddToRegistry(Sidebar, { BackgroundColor3 = 'MainColor' });
-
-    -- Sidebar separator line
-    Library:Create('Frame', {
-        BackgroundColor3 = Library.OutlineColor;
-        BorderSizePixel = 0;
-        Position = UDim2.new(1, 0, 0, 0);
-        Size = UDim2.new(0, 1, 1, 0);
-        ZIndex = 3;
-        Parent = Sidebar;
-    });
-
-    local TabArea = Library:Create('Frame', {
-        BackgroundTransparency = 1;
-        Position = UDim2.new(0, 0, 0, 8);
-        Size = UDim2.new(1, 0, 1, -8);
-        ZIndex = 3;
-        Parent = Sidebar;
-    });
-
-    local TabListLayout = Library:Create('UIListLayout', {
-        Padding = UDim.new(0, 2);
-        FillDirection = Enum.FillDirection.Vertical;
-        SortOrder = Enum.SortOrder.LayoutOrder;
-        Parent = TabArea;
-    });
-
-    -- Content area (right of sidebar)
+    -- Content area (right of sidebar, below search bar)
     local MainSectionInner = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 140, 0, 50);
-        Size = UDim2.new(1, -140, 1, -50);
+        Position = UDim2.new(0, 185, 0, 44);
+        Size = UDim2.new(1, -185, 1, -44);
         ZIndex = 1;
         Parent = Outer;
     });
