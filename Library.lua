@@ -4010,7 +4010,7 @@ function Library:CreateWindow(...)
 
     if Config.AutoShow then task.spawn(Library.Toggle) end
 
-    Library.CurrentTransparency = 0
+    Library.CurrentTransparency = 25/50
     Library.SetTransparency = function(t)
         Library.CurrentTransparency = t
         for _, Data in next, Library.Registry do
@@ -4034,6 +4034,7 @@ function Library:CreateWindow(...)
             end)
         end
     end
+    Library.SetTransparency(Library.CurrentTransparency)
 
     Window.Holder = Outer;
 

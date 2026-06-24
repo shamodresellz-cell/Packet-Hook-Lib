@@ -220,6 +220,4 @@ function SaveManager:BuildConfigSection(tab)
 	self:SetIgnoreIndexes({ 'SaveManager_ConfigList', 'SaveManager_ConfigName', 'MenuKeybind' })
 end
 
-SaveManager:BuildFolderTree()
-
 return SaveManager

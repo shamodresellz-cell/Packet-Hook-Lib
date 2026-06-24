@@ -250,6 +250,4 @@ function ThemeManager:BuildThemeSection(tab)
 	end
 end
 
-ThemeManager:BuildFolderTree()
-
 return ThemeManager
