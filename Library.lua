@@ -1,3 +1,5 @@
+local _LucideIcons = loadstring(game:HttpGet('https://raw.githubusercontent.com/shamodresellz-cell/Packet-Hook-Lib/main/Icons.lua'))()
+
 local InputService = game:GetService('UserInputService');
 local TextService = game:GetService('TextService');
 local CoreGui = game:GetService('CoreGui');
@@ -131,11 +133,27 @@ function Library:Create(Class, Properties)
     end;
 
     for Property, Value in next, Properties do
-        _Instance[Property] = Value;
+        if Property == 'Image' and type(Value) == 'table' then
+            _Instance.Image           = Value[1];
+            _Instance.ImageRectOffset = Value[2];
+            _Instance.ImageRectSize   = Value[3];
+        else
+            _Instance[Property] = Value;
+        end;
     end;
 
     return _Instance;
 end;
+
+function Library:LucideIcon(name)
+    local data = _LucideIcons['48px'] and _LucideIcons['48px'][name]
+    if not data then return nil end
+    return {
+        'rbxassetid://' .. data[1],
+        Vector2.new(data[3][1], data[3][2]),
+        Vector2.new(data[2][1], data[2][2]),
+    }
+end
 
 function Library:ApplyTextStroke(Inst)
     Inst.TextStrokeTransparency = 1;
@@ -1963,6 +1981,7 @@ do
         setmetatable(Toggle, BaseAddons);
 
         Toggles[Idx] = Toggle;
+        Options[Idx] = Toggle;
 
         Library:UpdateDependencyBoxes();
 
@@ -2993,6 +3012,87 @@ function Library:CreateWindow(...)
 
     Library:MakeDraggable(Outer, 52);
 
+    -- ─── Resize handles ────────────────────────────────────────────────────
+    do
+        local MIN_W, MAX_W = 620, 1400
+        local MIN_H, MAX_H = 380, 900
+
+        -- Side edge — horizontal resize only
+        local function MakeResizeHandle(anchorX, offsetX, sign)
+            local handle = Library:Create('Frame', {
+                BackgroundTransparency = 1;
+                Position = UDim2.new(anchorX, offsetX, 0.25, 0);
+                Size     = UDim2.new(0, 8, 0.5, 0);
+                ZIndex   = 200;
+                Parent   = Outer;
+            });
+
+            local active = false
+            local startX = 0
+            local startW = 0
+
+            handle.InputBegan:Connect(function(Input)
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+                active = true
+                startX = Input.Position.X
+                startW = Outer.AbsoluteSize.X
+            end)
+
+            Library:GiveSignal(InputService.InputChanged:Connect(function(Input)
+                if not active or Input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+                local delta = (Input.Position.X - startX) * sign
+                Outer.Size = UDim2.fromOffset(math.clamp(startW + delta, MIN_W, MAX_W), Outer.AbsoluteSize.Y)
+            end))
+
+            Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 then active = false end
+            end))
+        end
+
+        -- Bottom corner — diagonal resize (width + height)
+        local function MakeCornerHandle(anchorX, offsetX, wSign)
+            local handle = Library:Create('Frame', {
+                BackgroundTransparency = 1;
+                Position = UDim2.new(anchorX, offsetX, 1, -14);
+                Size     = UDim2.new(0, 14, 0, 14);
+                ZIndex   = 200;
+                Parent   = Outer;
+            });
+
+            local active = false
+            local startX, startY = 0, 0
+            local startW, startH = 0, 0
+
+            handle.InputBegan:Connect(function(Input)
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+                active = true
+                startX = Input.Position.X
+                startY = Input.Position.Y
+                startW = Outer.AbsoluteSize.X
+                startH = Outer.AbsoluteSize.Y
+            end)
+
+            Library:GiveSignal(InputService.InputChanged:Connect(function(Input)
+                if not active or Input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+                local dw = (Input.Position.X - startX) * wSign
+                local dh = Input.Position.Y - startY
+                Outer.Size = UDim2.fromOffset(
+                    math.clamp(startW + dw, MIN_W, MAX_W),
+                    math.clamp(startH + dh, MIN_H, MAX_H)
+                )
+            end))
+
+            Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 then active = false end
+            end))
+        end
+
+        MakeResizeHandle(1, -8,  1)   -- right edge
+        MakeResizeHandle(0,  0, -1)   -- left edge
+        MakeCornerHandle(1, -14,  1)  -- bottom-right corner
+        MakeCornerHandle(0,   0, -1)  -- bottom-left corner
+    end
+
     -- ─── Sidebar (full height) ──────────────────────────────────────────
     local Sidebar = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
@@ -3014,12 +3114,12 @@ function Library:CreateWindow(...)
         Parent = Sidebar;
     });
 
-    -- Three macOS-style colored dots
+    -- Three macOS-style colored dots (8×8, transparency tracks UI transparency)
     local dot1 = Library:Create('Frame', {
         BackgroundColor3 = Color3.fromRGB(255, 95, 87);
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 14, 0, 18);
-        Size = UDim2.new(0, 11, 0, 11);
+        Position = UDim2.new(0, 14, 0, 19);
+        Size = UDim2.new(0, 8, 0, 8);
         ZIndex = 4;
         Parent = Sidebar;
     });
@@ -3028,8 +3128,8 @@ function Library:CreateWindow(...)
     local dot2 = Library:Create('Frame', {
         BackgroundColor3 = Color3.fromRGB(255, 189, 46);
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 30, 0, 18);
-        Size = UDim2.new(0, 11, 0, 11);
+        Position = UDim2.new(0, 27, 0, 19);
+        Size = UDim2.new(0, 8, 0, 8);
         ZIndex = 4;
         Parent = Sidebar;
     });
@@ -3038,12 +3138,13 @@ function Library:CreateWindow(...)
     local dot3 = Library:Create('Frame', {
         BackgroundColor3 = Color3.fromRGB(39, 201, 63);
         BorderSizePixel = 0;
-        Position = UDim2.new(0, 46, 0, 18);
-        Size = UDim2.new(0, 11, 0, 11);
+        Position = UDim2.new(0, 40, 0, 19);
+        Size = UDim2.new(0, 8, 0, 8);
         ZIndex = 4;
         Parent = Sidebar;
     });
     Library:Create('UICorner', { CornerRadius = UDim.new(1, 0); Parent = dot3; });
+    Library.Dots = { dot1, dot2, dot3 };
 
     -- Hub icon circle
     local HubIcon = Library:Create('Frame', {
@@ -3171,15 +3272,55 @@ function Library:CreateWindow(...)
         end
     end)
 
-    local DragLabel = Library:CreateLabel({
-        AnchorPoint = Vector2.new(1, 0.5);
-        Position = UDim2.new(1, -12, 0.5, 0);
-        Size = UDim2.new(0, 22, 0, 22);
-        Text = '+';
-        TextSize = 20;
-        ZIndex = 3;
-        Parent = TopBar;
+    -- Lucide "Expand" icon — 4 corner brackets built from frames, no asset needed
+    local ExpandBtn = Library:Create('Frame', {
+        AnchorPoint          = Vector2.new(1, 0.5);
+        Position             = UDim2.new(1, -12, 0.5, 0);
+        Size                 = UDim2.new(0, 18, 0, 18);
+        BackgroundTransparency = 1;
+        ZIndex               = 3;
+        Parent               = TopBar;
     });
+    local function MakeBracket(hx, hy, vx, vy)
+        Library:Create('Frame', { BackgroundColor3 = Library.SubtextColor; BorderSizePixel = 0;
+            Position = UDim2.new(0, hx, 0, hy); Size = UDim2.new(0, 6, 0, 2); ZIndex = 4; Parent = ExpandBtn; });
+        Library:Create('Frame', { BackgroundColor3 = Library.SubtextColor; BorderSizePixel = 0;
+            Position = UDim2.new(0, vx, 0, vy); Size = UDim2.new(0, 2, 0, 6); ZIndex = 4; Parent = ExpandBtn; });
+    end;
+    MakeBracket(0,  0,  0,  0);   -- top-left
+    MakeBracket(12, 0,  16, 0);   -- top-right
+    MakeBracket(0,  16, 0,  12);  -- bottom-left
+    MakeBracket(12, 16, 16, 12);  -- bottom-right
+    -- Click = toggle menu  |  hold + drag = move the whole window
+    ExpandBtn.InputBegan:Connect(function(Input)
+        if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        local hasMoved = false
+        local startX   = Input.Position.X
+        local startY   = Input.Position.Y
+        local startCX  = Outer.AbsolutePosition.X + Outer.AbsoluteSize.X * 0.5
+        local startCY  = Outer.AbsolutePosition.Y + Outer.AbsoluteSize.Y * 0.5
+
+        local moveConn = InputService.InputChanged:Connect(function(inp)
+            if inp.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+            local dx = inp.Position.X - startX
+            local dy = inp.Position.Y - startY
+            if not hasMoved and (math.abs(dx) > 4 or math.abs(dy) > 4) then
+                hasMoved = true
+            end
+            if hasMoved then
+                Outer.Position = UDim2.fromOffset(startCX + dx, startCY + dy)
+            end
+        end)
+
+        local endConn
+        endConn = InputService.InputEnded:Connect(function(inp)
+            if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+            moveConn:Disconnect()
+            endConn:Disconnect()
+            if not hasMoved then task.spawn(Library.Toggle) end
+        end)
+    end);
+    local DragLabel = ExpandBtn;
 
     -- Content area (right of sidebar, below search bar)
     local MainSectionInner = Library:Create('Frame', {
@@ -3208,7 +3349,7 @@ function Library:CreateWindow(...)
         WindowLabel.Text = Title;
     end;
 
-    function Window:AddTab(Name)
+    function Window:AddTab(Name, iconId)
         local Tab = {
             Groupboxes = {};
             Tabboxes = {};
@@ -3237,9 +3378,23 @@ function Library:CreateWindow(...)
         Library:Create('UICorner', { CornerRadius = UDim.new(0, 2); Parent = Blocker; });
         Library:AddToRegistry(Blocker, { BackgroundColor3 = 'AccentColor' });
 
+        local TabIcon;
+        if iconId then
+            TabIcon = Library:Create('ImageLabel', {
+                BackgroundTransparency = 1;
+                Position               = UDim2.new(0, 14, 0.5, -8);
+                Size                   = UDim2.new(0, 16, 0, 16);
+                Image                  = iconId;
+                ImageColor3            = Library.SubtextColor;
+                ZIndex                 = 4;
+                Parent                 = TabButton;
+            });
+        end;
+
+        local textX = iconId and 38 or 16;
         local TabButtonLabel = Library:CreateLabel({
-            Position = UDim2.new(0, 16, 0, 0);
-            Size = UDim2.new(1, -16, 1, 0);
+            Position = UDim2.new(0, textX, 0, 0);
+            Size = UDim2.new(1, -textX, 1, 0);
             Text = Name;
             TextSize = 14;
             TextXAlignment = Enum.TextXAlignment.Left;
@@ -3317,6 +3472,7 @@ function Library:CreateWindow(...)
             Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'FontColor';
             TabButton.BackgroundColor3 = Library.ActiveTabColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'ActiveTabColor';
+            if TabIcon then TabIcon.ImageColor3 = Library.FontColor end;
             TabFrame.Visible = true;
         end;
 
@@ -3326,6 +3482,7 @@ function Library:CreateWindow(...)
             Library.RegistryMap[TabButtonLabel].Properties.TextColor3 = 'SubtextColor';
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
+            if TabIcon then TabIcon.ImageColor3 = Library.SubtextColor end;
             TabFrame.Visible = false;
         end;
 
@@ -3776,9 +3933,20 @@ function Library:CreateWindow(...)
             if inst and inst.Parent then
                 local key = Data.Properties.BackgroundColor3
                 if key == 'BackgroundColor' or key == 'MainColor' or key == 'ButtonColor' then
-                    pcall(function() inst.BackgroundTransparency = t end)
+                    pcall(function()
+                        inst.BackgroundTransparency = t
+                        local cache = TransparencyCache[inst]
+                        if cache then cache.BackgroundTransparency = t end
+                    end)
                 end
             end
+        end
+        for _, dot in ipairs(Library.Dots or {}) do
+            pcall(function()
+                dot.BackgroundTransparency = t
+                local cache = TransparencyCache[dot]
+                if cache then cache.BackgroundTransparency = t end
+            end)
         end
     end
 
