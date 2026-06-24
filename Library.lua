@@ -3320,7 +3320,7 @@ function Library:CreateWindow(...)
     local SubtitleLabel = Library:CreateLabel({
         Position = UDim2.new(0, 56, 0, 62);
         Size = UDim2.new(1, -60, 0, 13);
-        Text = Config.Subtitle or 'Anime Battle Arena';
+        Text = Config.GameName or Config.Subtitle or 'Anime Battle Arena';
         TextSize = 11;
         TextXAlignment = Enum.TextXAlignment.Left;
         ZIndex = 4;
