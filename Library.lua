@@ -2029,12 +2029,19 @@ do
             Groupbox:AddBlank(3);
         end
 
+        local SliderRow = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, -4, 0, 16);
+            ZIndex = 5;
+            Parent = Container;
+        });
+
         local SliderOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
             BorderColor3 = Color3.new(0, 0, 0);
-            Size = UDim2.new(1, -4, 0, 13);
+            Size = UDim2.new(1, -42, 1, 0);
             ZIndex = 5;
-            Parent = Container;
+            Parent = SliderRow;
         });
 
         Library:AddToRegistry(SliderOuter, {
@@ -2055,6 +2062,11 @@ do
             BorderColor3 = 'OutlineColor';
         });
 
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(1, 0);
+            Parent = SliderInner;
+        });
+
         local Fill = Library:Create('Frame', {
             BackgroundColor3 = Library.AccentColor;
             BorderColor3 = Library.AccentColorDark;
@@ -2066,6 +2078,11 @@ do
         Library:AddToRegistry(Fill, {
             BackgroundColor3 = 'AccentColor';
             BorderColor3 = 'AccentColorDark';
+        });
+
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(1, 0);
+            Parent = Fill;
         });
 
         local HideBorderRight = Library:Create('Frame', {
@@ -2083,11 +2100,62 @@ do
 
         local DisplayLabel = Library:CreateLabel({
             Size = UDim2.new(1, 0, 1, 0);
-            TextSize = 14;
-            Text = 'Infinite';
+            TextSize = 13;
+            Text = '';
             ZIndex = 9;
             Parent = SliderInner;
         });
+
+        local NumberOuter = Library:Create('Frame', {
+            AnchorPoint = Vector2.new(1, 0);
+            BackgroundColor3 = Color3.new(0, 0, 0);
+            BorderColor3 = Color3.new(0, 0, 0);
+            Position = UDim2.new(1, 0, 0, 0);
+            Size = UDim2.new(0, 38, 1, 0);
+            ZIndex = 5;
+            Parent = SliderRow;
+        });
+
+        Library:AddToRegistry(NumberOuter, { BorderColor3 = 'Black' });
+
+        local NumberInner = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3 = Library.OutlineColor;
+            BorderMode = Enum.BorderMode.Inset;
+            Size = UDim2.new(1, 0, 1, 0);
+            ZIndex = 6;
+            Parent = NumberOuter;
+        });
+
+        Library:AddToRegistry(NumberInner, {
+            BackgroundColor3 = 'MainColor';
+            BorderColor3 = 'OutlineColor';
+        });
+
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(0, 4);
+            Parent = NumberInner;
+        });
+
+        local NumberInput = Library:Create('TextBox', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 0, 1, 0);
+            Font = Library.Font;
+            TextSize = 13;
+            TextColor3 = Library.FontColor;
+            Text = tostring(Info.Default);
+            TextXAlignment = Enum.TextXAlignment.Center;
+            ClearTextOnFocus = false;
+            ZIndex = 7;
+            Parent = NumberInner;
+        });
+
+        Library:AddToRegistry(NumberInput, { TextColor3 = 'FontColor' });
+
+        SliderInner:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
+            Slider.MaxSize = math.max(1, SliderInner.AbsoluteSize.X)
+            Slider:Display()
+        end)
 
         Library:OnHighlight(SliderOuter, SliderOuter,
             { BorderColor3 = 'AccentColor' },
@@ -2108,16 +2176,18 @@ do
 
             if Info.Compact then
                 DisplayLabel.Text = Info.Text .. ': ' .. Slider.Value .. Suffix
-            elseif Info.HideMax then
-                DisplayLabel.Text = string.format('%s', Slider.Value .. Suffix)
             else
-                DisplayLabel.Text = string.format('%s/%s', Slider.Value .. Suffix, Slider.Max .. Suffix);
+                DisplayLabel.Text = '';
             end
 
             local X = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize));
             Fill.Size = UDim2.new(0, X, 1, 0);
 
             HideBorderRight.Visible = not (X == Slider.MaxSize or X == 0);
+
+            if not NumberInput:IsFocused() then
+                NumberInput.Text = tostring(Slider.Value) .. Suffix
+            end
         end;
 
         function Slider:OnChanged(Func)
@@ -2153,6 +2223,16 @@ do
             Library:SafeCallback(Slider.Callback, Slider.Value);
             Library:SafeCallback(Slider.Changed, Slider.Value);
         end;
+
+        NumberInput.FocusLost:Connect(function()
+            local num = tonumber(NumberInput.Text:gsub('[^%d%.-]', ''))
+            if num then
+                Slider:SetValue(tostring(num))
+            else
+                Slider:Display()
+            end
+            Library:AttemptSave()
+        end)
 
         SliderInner.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
@@ -2244,7 +2324,7 @@ do
         local DropdownOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
             BorderColor3 = Color3.new(0, 0, 0);
-            Size = UDim2.new(1, -4, 0, 20);
+            Size = UDim2.new(1, -4, 0, 26);
             ZIndex = 5;
             Parent = Container;
         });
@@ -2267,12 +2347,8 @@ do
             BorderColor3 = 'OutlineColor';
         });
 
-        Library:Create('UIGradient', {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(212, 212, 212))
-            });
-            Rotation = 90;
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(0, 5);
             Parent = DropdownInner;
         });
 
@@ -2343,6 +2419,11 @@ do
         Library:AddToRegistry(ListInner, {
             BackgroundColor3 = 'MainColor';
             BorderColor3 = 'OutlineColor';
+        });
+
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(0, 6);
+            Parent = ListInner;
         });
 
         local SearchContainer = Library:Create('Frame', {
