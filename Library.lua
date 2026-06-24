@@ -2225,11 +2225,16 @@ do
         end;
 
         NumberInput.FocusLost:Connect(function()
+            local suffix = Info.Suffix or ''
             local num = tonumber(NumberInput.Text:gsub('[^%d%.-]', ''))
             if num then
-                Slider:SetValue(tostring(num))
+                num = math.clamp(num, Slider.Min, Slider.Max)
+                Slider.Value = num
+                NumberInput.Text = tostring(num) .. suffix
+                Library:SafeCallback(Slider.Callback, Slider.Value)
+                Library:SafeCallback(Slider.Changed, Slider.Value)
             else
-                Slider:Display()
+                NumberInput.Text = tostring(Slider.Value) .. suffix
             end
             Library:AttemptSave()
         end)
