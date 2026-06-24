@@ -2231,6 +2231,7 @@ do
                 num = math.clamp(num, Slider.Min, Slider.Max)
                 Slider.Value = num
                 NumberInput.Text = tostring(num) .. suffix
+                Slider:Display()
                 Library:SafeCallback(Slider.Callback, Slider.Value)
                 Library:SafeCallback(Slider.Changed, Slider.Value)
             else
