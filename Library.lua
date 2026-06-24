@@ -2307,6 +2307,7 @@ do
         end
 
         local MAX_DROPDOWN_ITEMS = 8;
+        local SEARCH_HEIGHT = 23;
 
         local ListOuter = Library:Create('Frame', {
             BackgroundColor3 = Color3.new(0, 0, 0);
@@ -2321,7 +2322,7 @@ do
         end;
 
         local function RecalculateListSize(YSize)
-            ListOuter.Size = UDim2.fromOffset(DropdownOuter.AbsoluteSize.X, YSize or (MAX_DROPDOWN_ITEMS * 20 + 2))
+            ListOuter.Size = UDim2.fromOffset(DropdownOuter.AbsoluteSize.X, (YSize or (MAX_DROPDOWN_ITEMS * 20 + 2)) + SEARCH_HEIGHT)
         end;
 
         RecalculateListPosition();
@@ -2344,11 +2345,63 @@ do
             BorderColor3 = 'OutlineColor';
         });
 
+        local SearchContainer = Library:Create('Frame', {
+            BackgroundColor3 = Library.MainColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1, 0, 0, 22);
+            ZIndex = 22;
+            Parent = ListInner;
+        });
+
+        Library:AddToRegistry(SearchContainer, { BackgroundColor3 = 'MainColor' });
+
+        Library:Create('ImageLabel', {
+            BackgroundTransparency = 1;
+            AnchorPoint = Vector2.new(0, 0.5);
+            Position = UDim2.new(0, 5, 0.5, 0);
+            Size = UDim2.new(0, 12, 0, 12);
+            Image = 'rbxassetid://3926305904';
+            ImageRectOffset = Vector2.new(964, 324);
+            ImageRectSize = Vector2.new(36, 36);
+            ImageColor3 = Library.FontColor;
+            ZIndex = 23;
+            Parent = SearchContainer;
+        });
+
+        local SearchInput = Library:Create('TextBox', {
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0, 21, 0, 0);
+            Size = UDim2.new(1, -25, 1, 0);
+            Font = Library.Font;
+            TextSize = 13;
+            TextColor3 = Library.FontColor;
+            PlaceholderText = 'Search...';
+            PlaceholderColor3 = Color3.fromRGB(110, 110, 110);
+            Text = '';
+            TextXAlignment = Enum.TextXAlignment.Left;
+            ClearTextOnFocus = false;
+            ZIndex = 23;
+            Parent = SearchContainer;
+        });
+
+        Library:AddToRegistry(SearchInput, { TextColor3 = 'FontColor' });
+
+        Library:Create('Frame', {
+            BackgroundColor3 = Library.OutlineColor;
+            BorderSizePixel = 0;
+            AnchorPoint = Vector2.new(0, 1);
+            Position = UDim2.new(0, 0, 1, 0);
+            Size = UDim2.new(1, 0, 0, 1);
+            ZIndex = 22;
+            Parent = SearchContainer;
+        });
+
         local Scrolling = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
             CanvasSize = UDim2.new(0, 0, 0, 0);
-            Size = UDim2.new(1, 0, 1, 0);
+            Position = UDim2.new(0, 0, 0, SEARCH_HEIGHT);
+            Size = UDim2.new(1, 0, 1, -SEARCH_HEIGHT);
             ZIndex = 21;
             Parent = ListInner;
 
@@ -2435,16 +2488,34 @@ do
                     BorderColor3 = 'OutlineColor';
                 });
 
+                local CheckMark = Library:Create('TextLabel', {
+                    BackgroundTransparency = 1;
+                    Size = UDim2.new(0, 16, 1, 0);
+                    Position = UDim2.new(0, 4, 0, 0);
+                    Font = Library.Font;
+                    TextSize = 13;
+                    Text = '✓';
+                    TextXAlignment = Enum.TextXAlignment.Center;
+                    TextColor3 = Library.AccentColor;
+                    Visible = false;
+                    ZIndex = 25;
+                    Parent = Button;
+                });
+
+                Library:AddToRegistry(CheckMark, { TextColor3 = 'AccentColor' });
+
                 local ButtonLabel = Library:CreateLabel({
                     Active = false;
-                    Size = UDim2.new(1, -6, 1, 0);
-                    Position = UDim2.new(0, 6, 0, 0);
+                    Size = UDim2.new(1, -22, 1, 0);
+                    Position = UDim2.new(0, 22, 0, 0);
                     TextSize = 14;
                     Text = Value;
                     TextXAlignment = Enum.TextXAlignment.Left;
                     ZIndex = 25;
                     Parent = Button;
                 });
+
+                Table.ButtonLabel = ButtonLabel;
 
                 Library:OnHighlight(Button, Button,
                     { BorderColor3 = 'AccentColor', ZIndex = 24 },
@@ -2468,6 +2539,7 @@ do
 
                     ButtonLabel.TextColor3 = Selected and Library.AccentColor or Library.FontColor;
                     Library.RegistryMap[ButtonLabel].Properties.TextColor3 = Selected and 'AccentColor' or 'FontColor';
+                    CheckMark.Visible = Selected == true;
                 end;
 
                 ButtonLabel.InputBegan:Connect(function(Input)
@@ -2519,6 +2591,19 @@ do
 
             local Y = math.clamp(Count * 20, 0, MAX_DROPDOWN_ITEMS * 20) + 1;
             RecalculateListSize(Y);
+
+            if Dropdown._searchConn then Dropdown._searchConn:Disconnect() end
+            Dropdown._searchConn = SearchInput:GetPropertyChangedSignal('Text'):Connect(function()
+                local query = SearchInput.Text:lower()
+                local visible = 0
+                for btn, tbl in next, Buttons do
+                    local show = query == '' or tbl.ButtonLabel.Text:lower():find(query, 1, true) ~= nil
+                    btn.Visible = show
+                    if show then visible += 1 end
+                end
+                Scrolling.CanvasSize = UDim2.fromOffset(0, visible * 20 + 1)
+                RecalculateListSize(math.clamp(visible * 20, 0, MAX_DROPDOWN_ITEMS * 20) + 1)
+            end)
         end;
 
         function Dropdown:SetValues(NewValues)
@@ -2539,6 +2624,7 @@ do
             ListOuter.Visible = false;
             Library.OpenedFrames[ListOuter] = nil;
             DropdownArrow.Rotation = 0;
+            SearchInput.Text = '';
         end;
 
         function Dropdown:OnChanged(Func)
