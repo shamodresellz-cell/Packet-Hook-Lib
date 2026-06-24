@@ -1,4 +1,4 @@
-﻿-- Packet Hook hub -- example script
+-- Packet Hook hub — example script
 -- Copy this file and rename it for each game you support.
 
 local repo = 'https://raw.githubusercontent.com/shamodresellz-cell/Packet-Hook-Lib/main/'
@@ -20,7 +20,7 @@ local Tabs = {
     ['UI Settings'] = Window:AddTab('UI Settings',  Library:LucideIcon('settings')),
 }
 
--- Feature toggles
+-- ── Feature toggles ───────────────────────────────────────────────────
 local MainGroup = Tabs.Main:AddLeftGroupbox('Features')
 
 MainGroup:AddToggle('MyFeature', {
@@ -36,7 +36,7 @@ MainGroup:AddButton('Example Button', function()
     print('Button clicked!')
 end)
 
--- UI Settings
+-- ── UI Settings ───────────────────────────────────────────────────────
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
 MenuGroup:AddButton('Unload', function() Library:Unload() end)
 MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', {

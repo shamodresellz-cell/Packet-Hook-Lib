@@ -10,10 +10,24 @@ function ThemeManager:SetLibrary(library)
 	self.Library = library
 end
 
+function ThemeManager:SetFolder(folder)
+	self.Folder = folder
+	self:BuildFolderTree()
+end
+
+function ThemeManager:ApplyToTab(tab)
+	self:BuildThemeSection(tab)
+end
+
 function ThemeManager:BuildFolderTree()
-	for _, path in next, { self.Folder, self.Folder .. '/themes' } do
-		if not isfolder(path) then makefolder(path) end
+	local parts = {}
+	for segment in self.Folder:gmatch('[^/\\]+') do
+		table.insert(parts, segment)
+		local p = table.concat(parts, '/')
+		if not isfolder(p) then makefolder(p) end
 	end
+	local t = self.Folder .. '/themes'
+	if not isfolder(t) then makefolder(t) end
 end
 
 function ThemeManager:Save(name)
@@ -144,7 +158,7 @@ function ThemeManager:BuildThemeSection(tab)
 	})
 	colorGroup:AddSlider('UiTransparency', {
 		Text     = 'UI Transparency',
-		Default  = 0,
+		Default  = 5,
 		Min      = 0,
 		Max      = 50,
 		Rounding = 1,
@@ -152,9 +166,10 @@ function ThemeManager:BuildThemeSection(tab)
 			lib.SetTransparency(val / 50)
 		end,
 	})
+	lib.SetTransparency(5 / 50)
 
-	-- ── Theme save/load (right column) ───────────────────────────────
-	local saveGroup = tab:AddRightGroupbox('Themes')
+	-- ── Theme save/load (left column, below color pickers) ───────────
+	local saveGroup = tab:AddLeftGroupbox('Themes')
 
 	saveGroup:AddInput('ThemeManager_ThemeName', {
 		Text     = 'Theme name',
@@ -201,7 +216,7 @@ function ThemeManager:BuildThemeSection(tab)
 		Opts.ThemeManager_ThemeList:SetValue(nil)
 	end)
 
-	local autoloadLbl = saveGroup:AddLabel('Theme autoload: none')
+	local autoloadLbl
 
 	saveGroup:AddButton('Set as autoload', function()
 		local name = Opts.ThemeManager_ThemeList.Value
@@ -217,6 +232,8 @@ function ThemeManager:BuildThemeSection(tab)
 		autoloadLbl:SetText('Theme autoload: none')
 		lib:Notify('Theme autoload cleared', 3)
 	end)
+
+	autoloadLbl = saveGroup:AddLabel('Theme autoload: none')
 
 	if isfile(self.Folder .. '/themes/autoload.txt') then
 		autoloadLbl:SetText('Theme autoload: ' .. readfile(self.Folder .. '/themes/autoload.txt'))

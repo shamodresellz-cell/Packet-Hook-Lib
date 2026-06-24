@@ -1,25 +1,31 @@
-# LinoriaLib
-A Roblox UI library inspired by Splix, BBot and many others.
+# Packet Hook Library
 
-Used in the Linoria script hub: https://kyaru.cloud
+A custom Roblox UI library built for the **Packet Hook** exploit hub.
 
-###### Example Script: 
-* [Example](Example.lua)
+## Load
 
-###### Interface Addons:
-* [Theme Manager](addons/ThemeManager.lua)&nbsp;&nbsp;|&nbsp;&nbsp;[Save Manager](addons/SaveManager.lua) 
+```lua
+local repo = 'https://raw.githubusercontent.com/shamodresellz-cell/Packet-Hook-Lib/main/'
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+```
+
+## Example Script
+
+[Example.lua](Example.lua)
+
+## Addons
+
+[ThemeManager.lua](ThemeManager.lua) — color themes, UI transparency, autoload support
+
+[SaveManager.lua](SaveManager.lua) — config save/load system with autoload support
 
 ## Features
-- Tabs, group boxes, and tab boxes
-- Almost any UI element you would ever need (toggles, sliders, dropdowns, etc)
-- Interface automatically becomes scrollable whenever there are too many UI elements
-- Dependency boxes, allowing you to easily hide/show UI elements depending on the state of other UI elements
 
-## Interface Preview
-<img src="https://i.imgur.com/qs0Hqc6.png" />
-
-## Contributors
-- Inori: Main developer.
-- Wally: Cleaning up verbose code, extending library functionality.
-- Stefanuk: Extending library functionality.
-- matas3535: Creator of Splix.
+- Tabs and group boxes with automatic scrolling
+- Toggles, sliders, dropdowns, color pickers, key pickers, text inputs
+- Search bar to quickly find any element by name
+- Theme system — accent, background, main color, outline, and UI transparency
+- Config system — save and load toggle/slider/dropdown states per game
+- Autoload for both themes and configs on hub start
+- Notification system
+- Keybind menu with customizable menu toggle key

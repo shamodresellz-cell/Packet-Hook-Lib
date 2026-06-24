@@ -56,9 +56,14 @@ function SaveManager:SetFolder(folder)
 end
 
 function SaveManager:BuildFolderTree()
-	for _, path in next, { self.Folder, self.Folder .. '/settings' } do
-		if not isfolder(path) then makefolder(path) end
+	local parts = {}
+	for segment in self.Folder:gmatch('[^/\\]+') do
+		table.insert(parts, segment)
+		local p = table.concat(parts, '/')
+		if not isfolder(p) then makefolder(p) end
 	end
+	local s = self.Folder .. '/settings'
+	if not isfolder(s) then makefolder(s) end
 end
 
 function SaveManager:Save(name)
@@ -112,7 +117,7 @@ end
 
 function SaveManager:SetLibrary(library)
 	self.Library = library
-	self.Options = library.Options
+	self.Options = getgenv().Options
 end
 
 function SaveManager:LoadAutoloadConfig()
@@ -179,7 +184,7 @@ function SaveManager:BuildConfigSection(tab)
 		Opts.SaveManager_ConfigList:SetValue(nil)
 	end)
 
-	local autoloadLbl = section:AddLabel('Autoload: none')
+	local autoloadLbl
 
 	section:AddButton('Set as autoload', function()
 		local name = Opts.SaveManager_ConfigList.Value
@@ -195,6 +200,8 @@ function SaveManager:BuildConfigSection(tab)
 		autoloadLbl:SetText('Autoload: none')
 		L:Notify('Autoload cleared', 3)
 	end)
+
+	autoloadLbl = section:AddLabel('Autoload: none')
 
 	if isfile(self.Folder .. '/settings/autoload.txt') then
 		autoloadLbl:SetText('Autoload: ' .. readfile(self.Folder .. '/settings/autoload.txt'))

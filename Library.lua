@@ -155,6 +155,7 @@ function Library:LucideIcon(name)
     }
 end
 
+
 function Library:ApplyTextStroke(Inst)
     Inst.TextStrokeTransparency = 1;
 
