@@ -3012,12 +3012,10 @@ function Library:CreateWindow(...)
 
     Library:MakeDraggable(Outer, 52);
 
-    -- ─── Resize handles ────────────────────────────────────────────────────
+    -- ─── Resize handles (right edge + left edge, middle 50% height) ─────
     do
         local MIN_W, MAX_W = 620, 1400
-        local MIN_H, MAX_H = 380, 900
 
-        -- Side edge — horizontal resize only
         local function MakeResizeHandle(anchorX, offsetX, sign)
             local handle = Library:Create('Frame', {
                 BackgroundTransparency = 1;
@@ -3027,9 +3025,9 @@ function Library:CreateWindow(...)
                 Parent   = Outer;
             });
 
-            local active = false
-            local startX = 0
-            local startW = 0
+            local active  = false
+            local startX  = 0
+            local startW  = 0
 
             handle.InputBegan:Connect(function(Input)
                 if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
@@ -3049,48 +3047,8 @@ function Library:CreateWindow(...)
             end))
         end
 
-        -- Bottom corner — diagonal resize (width + height)
-        local function MakeCornerHandle(anchorX, offsetX, wSign)
-            local handle = Library:Create('Frame', {
-                BackgroundTransparency = 1;
-                Position = UDim2.new(anchorX, offsetX, 1, -14);
-                Size     = UDim2.new(0, 14, 0, 14);
-                ZIndex   = 200;
-                Parent   = Outer;
-            });
-
-            local active = false
-            local startX, startY = 0, 0
-            local startW, startH = 0, 0
-
-            handle.InputBegan:Connect(function(Input)
-                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-                active = true
-                startX = Input.Position.X
-                startY = Input.Position.Y
-                startW = Outer.AbsoluteSize.X
-                startH = Outer.AbsoluteSize.Y
-            end)
-
-            Library:GiveSignal(InputService.InputChanged:Connect(function(Input)
-                if not active or Input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
-                local dw = (Input.Position.X - startX) * wSign
-                local dh = Input.Position.Y - startY
-                Outer.Size = UDim2.fromOffset(
-                    math.clamp(startW + dw, MIN_W, MAX_W),
-                    math.clamp(startH + dh, MIN_H, MAX_H)
-                )
-            end))
-
-            Library:GiveSignal(InputService.InputEnded:Connect(function(Input)
-                if Input.UserInputType == Enum.UserInputType.MouseButton1 then active = false end
-            end))
-        end
-
-        MakeResizeHandle(1, -8,  1)   -- right edge
-        MakeResizeHandle(0,  0, -1)   -- left edge
-        MakeCornerHandle(1, -14,  1)  -- bottom-right corner
-        MakeCornerHandle(0,   0, -1)  -- bottom-left corner
+        MakeResizeHandle(1, -8,  1)  -- right edge: drag right = wider
+        MakeResizeHandle(0,  0, -1)  -- left edge:  drag left  = wider
     end
 
     -- ─── Sidebar (full height) ──────────────────────────────────────────
@@ -3291,34 +3249,8 @@ function Library:CreateWindow(...)
     MakeBracket(12, 0,  16, 0);   -- top-right
     MakeBracket(0,  16, 0,  12);  -- bottom-left
     MakeBracket(12, 16, 16, 12);  -- bottom-right
-    -- Click = toggle menu  |  hold + drag = move the whole window
     ExpandBtn.InputBegan:Connect(function(Input)
-        if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-        local hasMoved = false
-        local startX   = Input.Position.X
-        local startY   = Input.Position.Y
-        local startCX  = Outer.AbsolutePosition.X + Outer.AbsoluteSize.X * 0.5
-        local startCY  = Outer.AbsolutePosition.Y + Outer.AbsoluteSize.Y * 0.5
-
-        local moveConn = InputService.InputChanged:Connect(function(inp)
-            if inp.UserInputType ~= Enum.UserInputType.MouseMovement then return end
-            local dx = inp.Position.X - startX
-            local dy = inp.Position.Y - startY
-            if not hasMoved and (math.abs(dx) > 4 or math.abs(dy) > 4) then
-                hasMoved = true
-            end
-            if hasMoved then
-                Outer.Position = UDim2.fromOffset(startCX + dx, startCY + dy)
-            end
-        end)
-
-        local endConn
-        endConn = InputService.InputEnded:Connect(function(inp)
-            if inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-            moveConn:Disconnect()
-            endConn:Disconnect()
-            if not hasMoved then task.spawn(Library.Toggle) end
-        end)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then task.spawn(Library.Toggle) end;
     end);
     local DragLabel = ExpandBtn;
 
@@ -3378,6 +3310,7 @@ function Library:CreateWindow(...)
         Library:Create('UICorner', { CornerRadius = UDim.new(0, 2); Parent = Blocker; });
         Library:AddToRegistry(Blocker, { BackgroundColor3 = 'AccentColor' });
 
+        -- Optional Lucide icon (pass rbxassetid://... as iconId)
         local TabIcon;
         if iconId then
             TabIcon = Library:Create('ImageLabel', {
