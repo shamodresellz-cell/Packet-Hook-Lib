@@ -211,6 +211,28 @@ function SaveManager:BuildConfigSection(tab)
 		L:Notify('Autoload cleared', 3)
 	end)
 
+	section:AddButton('Export config', function()
+		local name = Opts.SaveManager_ConfigList.Value
+		local json
+		if name then
+			local path = self.Folder .. '/settings/' .. name .. '.json'
+			if isfile(path) then json = readfile(path) end
+		end
+		if not json then
+			local data = { objects = {} }
+			for idx, option in next, self.Options do
+				if not self.Parser[option.Type] then continue end
+				if self.Ignore[idx] then continue end
+				table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
+			end
+			local ok, encoded = pcall(httpService.JSONEncode, httpService, data)
+			if ok then json = encoded end
+		end
+		if not json then L:Notify('Nothing to export', 3) return end
+		setclipboard('```json\n' .. json .. '\n```')
+		L:Notify('Config copied to clipboard', 3)
+	end)
+
 	autoloadLbl = section:AddLabel('Autoload: none')
 
 	if isfile(self.Folder .. '/settings/autoload.txt') then

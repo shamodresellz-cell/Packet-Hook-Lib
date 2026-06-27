@@ -242,6 +242,29 @@ function ThemeManager:BuildThemeSection(tab)
 		lib:Notify('Theme autoload cleared', 3)
 	end)
 
+	saveGroup:AddButton('Export theme', function()
+		local name = Opts.ThemeManager_ThemeList.Value
+		local json
+		if name then
+			local path = self.Folder .. '/themes/' .. name .. '.json'
+			if isfile(path) then json = readfile(path) end
+		end
+		if not json then
+			local data = {
+				AccentColor     = lib.AccentColor:ToHex(),
+				BackgroundColor = lib.BackgroundColor:ToHex(),
+				MainColor       = lib.MainColor:ToHex(),
+				OutlineColor    = lib.OutlineColor:ToHex(),
+				Transparency    = lib.CurrentTransparency or 0,
+			}
+			local ok, encoded = pcall(httpService.JSONEncode, httpService, data)
+			if ok then json = encoded end
+		end
+		if not json then lib:Notify('Nothing to export', 3) return end
+		setclipboard('```json\n' .. json .. '\n```')
+		lib:Notify('Theme copied to clipboard', 3)
+	end)
+
 	autoloadLbl = saveGroup:AddLabel('Theme autoload: none')
 
 	if isfile(self.Folder .. '/themes/autoload.txt') then
