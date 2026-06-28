@@ -6,7 +6,7 @@
 -- USAGE: Copy this file, rename it for your game, fill in
 --        real logic where the print() stubs are.
 
-local repo = 'https://raw.githubusercontent.com/shamodresellz-cell/Packet-Hook-Lib/main/'
+local repo = 'https://raw.githubusercontent.com/PacketHook/Packet-Hook-Lib/main/'
 
 -- ── Load library ──────────────────────────────────────────────────────────
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()

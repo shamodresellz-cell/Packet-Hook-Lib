@@ -3295,25 +3295,14 @@ function Library:CreateWindow(...)
     });
     Library:Create('UICorner', { CornerRadius = UDim.new(1, 0); Parent = HubIcon; });
     Library:AddToRegistry(HubIcon, { BackgroundColor3 = 'AccentColor' });
-    if Config.ImageId and Config.ImageId ~= '' then
-        Library:Create('ImageLabel', {
-            BackgroundTransparency = 1;
-            Size = UDim2.new(1, 0, 1, 0);
-            Image = 'rbxassetid://' .. tostring(Config.ImageId);
-            ScaleType = Enum.ScaleType.Fit;
-            ZIndex = 5;
-            Parent = HubIcon;
-        });
-    else
-        Library:CreateLabel({
-            Size = UDim2.new(1, 0, 1, 0);
-            TextSize = 14;
-            Font = Enum.Font.GothamBold;
-            Text = string.sub(Config.Title or 'P', 1, 1);
-            ZIndex = 5;
-            Parent = HubIcon;
-        });
-    end
+    Library:Create('ImageLabel', {
+        BackgroundTransparency = 1;
+        Size = UDim2.new(1, 0, 1, 0);
+        Image = Config.ImageId and Config.ImageId ~= '' and ('rbxassetid://' .. tostring(Config.ImageId)) or '';
+        ScaleType = Enum.ScaleType.Fit;
+        ZIndex = 5;
+        Parent = HubIcon;
+    });
 
     -- Title
     local TitleLabel = Library:CreateLabel({
